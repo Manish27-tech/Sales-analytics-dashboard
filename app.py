@@ -30,8 +30,21 @@ def load_data():
             try:
                 df = pd.read_csv(path)
                 
-                df['Order Date'] = pd.to_datetime(df["Order Date"])
-                df['Ship Date'] = pd.to_datetime(df['Ship Date'])
+                try:
+                    df['Order Date'] = pd.to_datetime(df["Order Date"], format='%d/%m/%Y')
+                except:
+                    try:
+                        df['Order Date'] = pd.to_datetime(df["Order Date"], format='%m/%d/%Y')
+                    except:
+                        df['Order Date'] = pd.to_datetime(df["Order Date"])
+                
+                try:
+                    df['Ship Date'] = pd.to_datetime(df["Ship Date"], format='%d/%m/%Y')
+                except:
+                    try:
+                        df['Ship Date'] = pd.to_datetime(df["Ship Date"], format='%m/%d/%Y')
+                    except:
+                        df['Ship Date'] = pd.to_datetime(df["Ship Date"])
                 
                 df["Year"] = df["Order Date"].dt.year
                 df['Month'] = df["Order Date"].dt.month
@@ -52,6 +65,7 @@ def load_data():
                 df["Season"] = df["Order Date"].map(season)
                 return df
             except Exception as e:
+                st.error(f"Error reading {path}: {str(e)}")
                 continue
     
     st.error("Data file not found. Please make sure your CSV file is in the app directory.")
