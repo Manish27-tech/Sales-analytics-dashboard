@@ -21,19 +21,21 @@ def load_data():
     possible_paths = [
         "Train dataset.csv",
         "train.csv",
+        "train.csv.zip",
+        "Train.csv",
         "data.csv",
         "train_dataset.csv",
-        "Train.csv",
-        "train_data.csv",
-        r"C:\Users\manis\OneDrive\Documents\Train dataset.csv",
-        r"C:\Users\manis\Downloads\Train dataset.csv",
-        r"C:\Users\manis\Week 3 and Week 4 Final Project\Train dataset.csv"
+        "train_data.csv"
     ]
     
     for path in possible_paths:
         if os.path.exists(path):
             try:
-                df = pd.read_csv(path)
+                if path.endswith('.zip'):
+                    df = pd.read_csv(path, compression='zip')
+                else:
+                    df = pd.read_csv(path)
+                
                 df['Order Date'] = pd.to_datetime(df["Order Date"], format='%d-%m-%Y')
                 df['Ship Date'] = pd.to_datetime(df['Ship Date'], format='%d-%m-%Y')
                 df["Year"] = df["Order Date"].dt.year
@@ -54,7 +56,7 @@ def load_data():
                 
                 df["Season"] = df["Order Date"].map(season)
                 return df
-            except:
+            except Exception as e:
                 continue
     
     st.error("Data file not found. Please make sure 'Train dataset.csv' is in the app directory.")
@@ -560,8 +562,7 @@ st.markdown(
     """
     <div style='text-align: center; color: #666; padding: 20px;'>
         <p>📊 Sales Analytics Dashboard | Built with Streamlit</p>
-        <p style='font-
-        : 12px;'>Data covers 2015-2018 | Best model: XGBoost</p>
+        <p style='font-size: 12px;'>Data covers 2015-2018 | Best model: XGBoost</p>
     </div>
     """,
     unsafe_allow_html=True
