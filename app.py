@@ -18,32 +18,21 @@ st.set_page_config(
 
 @st.cache_data
 def load_data():
-    # DEBUG: List all files in the current directory
-    st.write("### Debug: Files in current directory")
-    files = os.listdir('.')
-    st.write(files)
-    
     possible_paths = [
         "Train dataset.csv",
         "train.csv",
-        "train.csv.zip",
         "Train.csv",
-        "data.csv",
-        "train_dataset.csv",
-        "train_data.csv"
+        "data.csv"
     ]
     
     for path in possible_paths:
         if os.path.exists(path):
-            st.write(f"✅ Found file: {path}")
             try:
-                if path.endswith('.zip'):
-                    df = pd.read_csv(path, compression='zip')
-                else:
-                    df = pd.read_csv(path)
+                df = pd.read_csv(path)
                 
-                df['Order Date'] = pd.to_datetime(df["Order Date"], format='%d-%m-%Y')
-                df['Ship Date'] = pd.to_datetime(df['Ship Date'], format='%d-%m-%Y')
+                df['Order Date'] = pd.to_datetime(df["Order Date"])
+                df['Ship Date'] = pd.to_datetime(df['Ship Date'])
+                
                 df["Year"] = df["Order Date"].dt.year
                 df['Month'] = df["Order Date"].dt.month
                 df['Week Number'] = df['Order Date'].dt.isocalendar().week
@@ -63,7 +52,6 @@ def load_data():
                 df["Season"] = df["Order Date"].map(season)
                 return df
             except Exception as e:
-                st.write(f"❌ Error reading {path}: {e}")
                 continue
     
     st.error("Data file not found. Please make sure your CSV file is in the app directory.")
