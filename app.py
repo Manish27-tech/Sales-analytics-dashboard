@@ -18,6 +18,11 @@ st.set_page_config(
 
 @st.cache_data
 def load_data():
+    # DEBUG: List all files in the current directory
+    st.write("### Debug: Files in current directory")
+    files = os.listdir('.')
+    st.write(files)
+    
     possible_paths = [
         "Train dataset.csv",
         "train.csv",
@@ -30,6 +35,7 @@ def load_data():
     
     for path in possible_paths:
         if os.path.exists(path):
+            st.write(f"✅ Found file: {path}")
             try:
                 if path.endswith('.zip'):
                     df = pd.read_csv(path, compression='zip')
@@ -57,9 +63,10 @@ def load_data():
                 df["Season"] = df["Order Date"].map(season)
                 return df
             except Exception as e:
+                st.write(f"❌ Error reading {path}: {e}")
                 continue
     
-    st.error("Data file not found. Please make sure 'Train dataset.csv' is in the app directory.")
+    st.error("Data file not found. Please make sure your CSV file is in the app directory.")
     return pd.DataFrame()
 
 @st.cache_data
