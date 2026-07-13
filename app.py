@@ -5,6 +5,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
+import os
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -17,36 +18,60 @@ st.set_page_config(
 
 @st.cache_data
 def load_data():
-    df=pd.read_csv("C:\\Users\\manis\\OneDrive\\Documents\\Train dataset.csv")
-    df['Order Date'] = pd.to_datetime(df["Order Date"], format='%d-%m-%Y')
-    df['Ship Date'] = pd.to_datetime(df['Ship Date'], format='%d-%m-%Y')
-    df["Year"] = df["Order Date"].dt.year
-    df['Month'] = df["Order Date"].dt.month
-    df['Week Number'] = df['Order Date'].dt.isocalendar().week
-    df['Day of Week'] = df['Order Date'].dt.dayofweek
-    df["Quarter"] = df['Order Date'].dt.quarter
+    possible_paths = [
+        "Train dataset.csv",
+        "train.csv",
+        "data.csv",
+        "train_dataset.csv",
+        "Train.csv",
+        "train_data.csv",
+        r"C:\Users\manis\OneDrive\Documents\Train dataset.csv",
+        r"C:\Users\manis\Downloads\Train dataset.csv",
+        r"C:\Users\manis\Week 3 and Week 4 Final Project\Train dataset.csv"
+    ]
     
-    def season(month):
-        if month in [12, 1, 2]:
-            return "Winter"
-        elif month in [3, 4, 5]:
-            return "Spring"
-        elif month in [6, 7, 8]:
-            return 'Summer'
-        else:
-            return "Fall"
+    for path in possible_paths:
+        if os.path.exists(path):
+            try:
+                df = pd.read_csv(path)
+                df['Order Date'] = pd.to_datetime(df["Order Date"], format='%d-%m-%Y')
+                df['Ship Date'] = pd.to_datetime(df['Ship Date'], format='%d-%m-%Y')
+                df["Year"] = df["Order Date"].dt.year
+                df['Month'] = df["Order Date"].dt.month
+                df['Week Number'] = df['Order Date'].dt.isocalendar().week
+                df['Day of Week'] = df['Order Date'].dt.dayofweek
+                df["Quarter"] = df['Order Date'].dt.quarter
+                
+                def season(month):
+                    if month in [12, 1, 2]:
+                        return "Winter"
+                    elif month in [3, 4, 5]:
+                        return "Spring"
+                    elif month in [6, 7, 8]:
+                        return 'Summer'
+                    else:
+                        return "Fall"
+                
+                df["Season"] = df["Order Date"].map(season)
+                return df
+            except:
+                continue
     
-    df["Season"] = df["Order Date"].map(season)
-    return df
+    st.error("Data file not found. Please make sure 'Train dataset.csv' is in the app directory.")
+    return pd.DataFrame()
 
 @st.cache_data
 def load_monthly_sales(df):
+    if df.empty:
+        return pd.DataFrame()
     monthly_sales = df.groupby(pd.Grouper(key='Order Date', freq='ME'))['Sales'].sum().reset_index()
     monthly_sales.columns = ['Date', 'Sales']
     return monthly_sales
 
 @st.cache_data
 def load_weekly_sales(df):
+    if df.empty:
+        return pd.DataFrame()
     weekly_sales = df.groupby(pd.Grouper(key='Order Date', freq='W'))['Sales'].sum().reset_index()
     weekly_sales.columns = ['Date', 'Sales']
     return weekly_sales
@@ -82,6 +107,11 @@ def load_cluster_results():
         return pd.DataFrame()
 
 df_data = load_data()
+
+if df_data.empty:
+    st.error("🚨 Failed to load data. Please check your CSV file.")
+    st.stop()
+
 monthly_sales_data = load_monthly_sales(df_data)
 weekly_sales_data = load_weekly_sales(df_data)
 model_comparison_data = load_model_comparison()
@@ -530,7 +560,8 @@ st.markdown(
     """
     <div style='text-align: center; color: #666; padding: 20px;'>
         <p>📊 Sales Analytics Dashboard | Built with Streamlit</p>
-        <p style='font-size: 12px;'>Data covers 2015-2018 | Best model: XGBoost</p>
+        <p style='font-
+        : 12px;'>Data covers 2015-2018 | Best model: XGBoost</p>
     </div>
     """,
     unsafe_allow_html=True
